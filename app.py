@@ -10,7 +10,7 @@ app = Flask(__name__)
 limiter = Limiter(
     app,
     key_func=get_remote_address,
-    default_limits=["60 per minute", "1 per second"],
+    default_limits=["300 per minute", "5 per second"],
 )
 
 verify_token = "mfechat"
@@ -412,7 +412,7 @@ def log(message):  # simple wrapper for logging to stdout on heroku
 @app.route('/privacy', methods=['GET'])
 def privacy():
     # needed route if you need to make your bot public
-    return "This facebook messenger bot's only purpose is to query answers. That's all. We don't use it in any other way."
+    return "Mục đích của con chatbot này là để giúp các bạn học sinh về các vấn đề tuyến sinh. End."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
