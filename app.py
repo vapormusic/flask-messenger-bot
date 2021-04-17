@@ -90,11 +90,11 @@ def received_message(event2, event):
         elif message_text == 'share':
             pass
         else:
-            response = requests.post('http://localhost:5005/webhooks/facebook/webhook', event2)
+            response = requests.post('http://localhost:5006/webhooks/facebook/webhook', event2)
             print(str(response.text))
    
 def received_message2(event):
-    response = requests.post('http://localhost:5005/webhooks/facebook/webhook', event)
+    response = requests.post('http://localhost:5006/webhooks/facebook/webhook', event)
     print(str(response.text))
 
 # Message event functions
