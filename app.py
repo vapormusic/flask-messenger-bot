@@ -70,13 +70,8 @@ def webhook():
 
     return "ok", 200
 
-
-
-
-
-
 @app.route('/mfe', methods=['GET'])
-def verify():
+def verify_mfe():
     # when the endpoint is registered as a webhook, it must echo back
     # the 'hub.challenge' value it receives in the query arguments
     if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.challenge"):
@@ -88,7 +83,7 @@ def verify():
 
 
 @app.route('/mfe', methods=['POST'])   
-def webhook():
+def webhook_mfe():
     # endpoint for processing incoming messaging events
 
     data = json.loads(request.data.decode('utf-8'))
