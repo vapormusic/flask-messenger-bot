@@ -10,28 +10,35 @@ app = Flask(__name__)
 limiter = Limiter(
     app,
     key_func=get_remote_address,
-    default_limits=["300 per minute", "5 per second"],
+    default_limits=["600 per minute", "8 per second"],
 )
 
 verify_token = "mfechat"
 # token to send messages through facebook messenger
 access_token = "EAAMkcdpZBH38BAMwpgUZCnemuTZB65vpdMdg8DkTPXVbBw7XoX9C7GuE3kbcSTmn6vuRPwmUZB7zqunglXvhGscPtvlmFsGjpTDkPFn4gUGKWKFVrSPi5aAuHT0B9YEnFTK0LAsNjguKw6OyABvKbcwn3SH2NZAfct8q2EAk9ywtJWo3CzM9G"
 
+verify_token_neu = "helloworld"
+# token to send messages through facebook messenger
+access_token_neu = "EAACZBVPYCHFsBAE3UReU3O6q0ZAadu6IQZB4l1ZAFgZAlVkRbQviZCigGZBwGEoatKm6hZApVl29EhN7brCubU5eTwZCDj6CJc73UzLixUBiGjf0aZCLGHrxht3LVVWuSDOAowsWlZAZASwsbyvIVmbrXuVpyn2o7mVrWUTW9mrAzwqCEMk59zFTQvSY"
+
+
+
 list = []
 
-@app.route('/', methods=['GET'])
+
+@app.route('/neu', methods=['GET'])
 def verify():
     # when the endpoint is registered as a webhook, it must echo back
     # the 'hub.challenge' value it receives in the query arguments
     if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.challenge"):
-        if not request.args.get("hub.verify_token") == verify_token:
+        if not request.args.get("hub.verify_token") == verify_token_neu:
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
 
     return "Hello world", 200
 
 
-@app.route('/', methods=['POST'])   
+@app.route('/neu', methods=['POST'])   
 def webhook():
     # endpoint for processing incoming messaging events
 
@@ -45,7 +52,7 @@ def webhook():
             for messaging_event in entry["messaging"]:
 
                 if messaging_event.get("message"):     # someone sent us a message
-                    received_message(request.data, messaging_event)
+                    received_message(request.data, messaging_event, 2)
 
                 elif messaging_event.get("delivery"):  # delivery confirmation
                     pass
@@ -56,7 +63,7 @@ def webhook():
                     # received_authentication(messaging_event)
 
                 elif messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
-                    received_message2(request.data)
+                    received_message2(request.data, 2)
 
                 else:    # uknown messaging_event
                     pass
@@ -64,7 +71,56 @@ def webhook():
     return "ok", 200
 
 
-def received_message(event2, event):
+
+
+
+
+@app.route('/mfe', methods=['GET'])
+def verify():
+    # when the endpoint is registered as a webhook, it must echo back
+    # the 'hub.challenge' value it receives in the query arguments
+    if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.challenge"):
+        if not request.args.get("hub.verify_token") == verify_token:
+            return "Verification token mismatch", 403
+        return request.args["hub.challenge"], 200
+
+    return "Hello world", 200
+
+
+@app.route('/mfe', methods=['POST'])   
+def webhook():
+    # endpoint for processing incoming messaging events
+
+    data = json.loads(request.data.decode('utf-8'))
+    print(data)
+    log(data)  # you may not want to log every incoming message in production, but it's good for testing
+
+       # make sure this is a page subscription
+
+    for entry in data["entry"]:
+            for messaging_event in entry["messaging"]:
+
+                if messaging_event.get("message"):     # someone sent us a message
+                    received_message(request.data, messaging_event,1)
+
+                elif messaging_event.get("delivery"):  # delivery confirmation
+                    pass
+                    # received_delivery_confirmation(messaging_event)
+
+                elif messaging_event.get("optin"):     # optin confirmation
+                    pass
+                    # received_authentication(messaging_event)
+
+                elif messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
+                    received_message2(request.data, 1)
+
+                else:    # uknown messaging_event
+                    pass
+
+    return "ok", 200
+
+
+def received_message(event2, event, server):
    if "text" in event["message"]:
         message_text = event["message"]["text"]
 
@@ -90,11 +146,17 @@ def received_message(event2, event):
         elif message_text == 'share':
             pass
         else:
+           if server == 1: 
             response = requests.post('http://localhost:5006/webhooks/facebook/webhook', event2)
-            print(str(response.text))
+           else:
+            response = requests.post('http://localhost:5005/webhooks/facebook/webhook', event2)  
+           print(str(response.text))
    
-def received_message2(event):
-    response = requests.post('http://localhost:5006/webhooks/facebook/webhook', event)
+def received_message2(event,server):
+    if server == 1:
+     response = requests.post('http://localhost:5006/webhooks/facebook/webhook', event)
+    else: 
+     response = requests.post('http://localhost:5005/webhooks/facebook/webhook', event)  
     print(str(response.text))
 
 # Message event functions
